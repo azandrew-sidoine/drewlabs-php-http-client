@@ -357,7 +357,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * @param string $method
      * @param string $uri
      * @param string $options
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function request($method, $uri = '', $options = [])
     {
@@ -368,18 +368,17 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
                 $this->attachedFiles
             );
         }
-        return \Drewlabs\HttpClient\Core\ClientHelpers::retry($this->retries ?? 1, function () use ($method, $uri, $options) {
+        $retries = $this->retries ?? 1;
+        return \Drewlabs\HttpClient\Core\ClientHelpers::retry($retries, function () use ($method, $uri, $options, &$retries) {
             try {
                 $this->withContentType();
                 $opts = $this->mergeWithRequestOptions($options);
                 // Initialize the client property on each request call
                 $this->mapAttributeToInitialValues();
-                var_dump($opts);
-                die();
                 $response = $this->client->request($method, $uri, $opts);
                 return $response;
             } catch (\GuzzleHttp\Exception\ConnectException $e) {
-                if ($this->retries > 1) {
+                if ($retries >= 1) {
                     throw new \Drewlabs\HttpClient\Exceptions\ConnectionException('Connection error : ' . $e->getMessage() . "\n");
                 }
             }
@@ -394,7 +393,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return \GuzzleHttp\Promise\PromiseInterface|Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function get($uri = '', array $options = [])
     {
@@ -411,7 +410,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return \GuzzleHttp\Promise\PromiseInterface|Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function post($uri = '', array $data = [], array $options = [])
     {
@@ -430,7 +429,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return \GuzzleHttp\Promise\PromiseInterface|Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function patch($uri = '', array $data = [], array $options = [])
     {
@@ -449,7 +448,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return \GuzzleHttp\Promise\PromiseInterface|Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function put($uri = '', array $data = [], array $options = [])
     {
@@ -467,7 +466,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return \GuzzleHttp\Promise\PromiseInterface|Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function delete($uri = '', array $options = [])
     {
@@ -483,7 +482,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return \GuzzleHttp\Promise\PromiseInterface|Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function option($uri = '', array $options = [])
     {
@@ -497,7 +496,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return \GuzzleHttp\Promise\PromiseInterface|Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function head($uri = '', array $options = [])
     {

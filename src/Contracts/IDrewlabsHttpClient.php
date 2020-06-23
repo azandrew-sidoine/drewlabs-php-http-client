@@ -83,7 +83,7 @@ interface IDrewlabsHttpClient
      * @param string $method
      * @param string $uri
      * @param string $options
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function request($method, $uri = '', $options = []);
 
@@ -95,7 +95,7 @@ interface IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function get($uri = '', array $options = []);
 
@@ -108,7 +108,7 @@ interface IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function post($uri = '', array $data = [], array $options = []);
 
@@ -121,7 +121,7 @@ interface IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function patch($uri = '', array $data = [], array $options = []);
 
@@ -134,7 +134,7 @@ interface IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function put($uri = '', array $data = [], array $options = []);
 
@@ -146,7 +146,7 @@ interface IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function delete($uri = '', array $options = []);
 
@@ -158,7 +158,7 @@ interface IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function option($uri = '', array $options = []);
 
@@ -170,7 +170,7 @@ interface IDrewlabsHttpClient
      * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * 
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function head($uri = '', array $options = []);
 }
