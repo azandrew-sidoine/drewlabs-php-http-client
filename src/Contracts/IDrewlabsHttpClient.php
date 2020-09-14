@@ -39,7 +39,7 @@ interface IDrewlabsHttpClient
      * @param string $domain
      * @return static
      */
-    public function withCookies(array $cookies, $domain);
+    public function withCookies(array $cookies, $domain = '');
 
     /**
      * Set request timeout that will be apply to the request client
@@ -69,7 +69,7 @@ interface IDrewlabsHttpClient
     public function withBearerToken($token, $method = 'Bearer');
 
     /**
-     * This method helps in specifying additionnal Guzzle http request 
+     * This method helps in specifying additionnal Guzzle http request
      * options that will be binded with the request client
      *
      * @param array $options
@@ -92,9 +92,9 @@ interface IDrewlabsHttpClient
      *
      * @param string $uri
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function get($uri = '', array $options = []);
@@ -105,9 +105,9 @@ interface IDrewlabsHttpClient
      * @param string $uri
      * @param array $data
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function post($uri = '', array $data = [], array $options = []);
@@ -118,9 +118,9 @@ interface IDrewlabsHttpClient
      * @param string $uri
      * @param array $data
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function patch($uri = '', array $data = [], array $options = []);
@@ -131,9 +131,9 @@ interface IDrewlabsHttpClient
      * @param string $uri
      * @param array $data
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function put($uri = '', array $data = [], array $options = []);
@@ -143,9 +143,9 @@ interface IDrewlabsHttpClient
      *
      * @param string $uri
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function delete($uri = '', array $options = []);
@@ -155,9 +155,9 @@ interface IDrewlabsHttpClient
      *
      * @param string $uri
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function option($uri = '', array $options = []);
@@ -167,9 +167,9 @@ interface IDrewlabsHttpClient
      *
      * @param string $uri
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function head($uri = '', array $options = []);

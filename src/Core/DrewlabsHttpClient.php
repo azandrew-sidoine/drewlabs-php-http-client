@@ -33,7 +33,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
     private $retryDelay;
 
     /**
-     * request 
+     * request
      *
      * @var [type]
      */
@@ -329,7 +329,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
     }
 
     /**
-     * This method helps in specifying additionnal Guzzle http request 
+     * This method helps in specifying additionnal Guzzle http request
      * options that will be binded with the request client
      *
      * @param array $options
@@ -390,9 +390,9 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      *
      * @param string $uri
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function get($uri = '', array $options = [])
@@ -407,9 +407,9 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * @param string $uri
      * @param array $data
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function post($uri = '', array $data = [], array $options = [])
@@ -426,9 +426,9 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * @param string $uri
      * @param array $data
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function patch($uri = '', array $data = [], array $options = [])
@@ -445,9 +445,9 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      * @param string $uri
      * @param array $data
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function put($uri = '', array $data = [], array $options = [])
@@ -463,9 +463,9 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      *
      * @param string $uri
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function delete($uri = '', array $options = [])
@@ -479,9 +479,9 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      *
      * @param string $uri
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function option($uri = '', array $options = [])
@@ -493,9 +493,9 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      *
      * @param string $uri
      * @param array $options
-     * 
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * 
+     *
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function head($uri = '', array $options = [])
