@@ -67,9 +67,11 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
      */
     private $middlewareStack;
 
-    public function __construct(\GuzzleHttp\ClientInterface $client = null)
+    public function __construct(\GuzzleHttp\ClientInterface $client = null, $baseURI = null)
     {
-        $this->client = $client;
+        $this->client = $client ?? new \GuzzleHttp\Client([
+            'base_uri' => $baseURI,
+        ]);
         $this->resetMiddlewareStack();
         $this->mapAttributeToInitialValues();
     }
