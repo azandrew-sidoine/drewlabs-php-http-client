@@ -1,3 +1,4 @@
 /vendor
 /assets
 index.php
+composer.lock
