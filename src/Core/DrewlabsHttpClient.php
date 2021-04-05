@@ -3,6 +3,7 @@
 namespace Drewlabs\HttpClient\Core;
 
 use Drewlabs\HttpClient\Contracts\IDrewlabsHttpClient;
+use GuzzleHttp\Utils;
 
 class DrewlabsHttpClient implements IDrewlabsHttpClient
 {
@@ -129,7 +130,7 @@ class DrewlabsHttpClient implements IDrewlabsHttpClient
     private function resetMiddlewareStack()
     {
         $this->middlewareStack = new \GuzzleHttp\HandlerStack();
-        $this->middlewareStack->setHandler(\GuzzleHttp\choose_handler());
+        $this->middlewareStack->setHandler(Utils::chooseHandler());
         return $this;
     }
 
