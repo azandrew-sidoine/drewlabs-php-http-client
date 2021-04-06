@@ -11,7 +11,6 @@ interface HttpClientInterface
      */
     public function asFormRequest();
 
-
     /**
      * This method set request content-type header to  application/json
      */
