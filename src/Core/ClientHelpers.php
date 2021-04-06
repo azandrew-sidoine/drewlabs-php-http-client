@@ -4,6 +4,11 @@ namespace Drewlabs\HttpClient\Core;
 
 class ClientHelpers
 {
+
+    const HTTP_CLIENT_CONTENT_TYPE_HEADER = 'Content-Type';
+    const HTTP_CLIENT_AUTHORIZATION_HEADER = 'Authorization';
+
+
     /**
      * Retry an operation a given number of times.
      *

@@ -54,12 +54,13 @@ class ProxiedHttpClient extends DrewlabsHttpClient implements ProxiedHttpClientI
     public function request($method, $uri = '', $options = [])
     {
         $options[$this->requestBodyAttribute] = [
-            '_body' => $options[$this->requestBodyAttribute] ?? [],
-            '_endpoint' => [
+            '__body__' => $options[$this->requestBodyAttribute] ?? [],
+            '__endpoint__' => [
                 'base_uri' => $this->remote_host,
                 'path' => $uri
-            ]
+            ],
+            '__method__' => $method
         ];
-        return parent::request($method, $this->proxy_resource_path ?? '', $options);
+        return parent::request('POST', $this->proxy_resource_path ?? '', $options);
     }
 }
