@@ -2,8 +2,36 @@
 
 namespace Drewlabs\HttpClient\Traits;
 
+use Drewlabs\HttpClient\Core\ClientHelpers;
+
 trait HttpClient
 {
+
+
+    protected function mergeWithRequestOptions(array $options)
+    {
+        $options = is_array($options) ? $options : [];
+        $requestOptions = array_merge($this->requestOptions ?: [], []);
+        // Remove entries that are not of type array and are present in the option entry
+        foreach ($options as $key => $value) {
+            # code...
+            if (!isset($requestOptions[$key])) {
+                continue;
+            }
+            if (!is_array($requestOptions[$key])) {
+                unset($requestOptions[$key]);
+                continue;
+            }
+            $keys = array_keys($requestOptions[$key]);
+            $isAssoc = array_filter(($keys), 'is_string') === $keys;
+            // Unset the key if it is not an associative array
+            if (!$isAssoc) {
+                unset($requestOptions[$key]);
+                continue;
+            }
+        }
+        return \array_merge_recursive($requestOptions, $options);
+    }
 
     /**
      * Undocumented function
@@ -161,11 +189,11 @@ trait HttpClient
      */
     public function withBearerToken($token, $method = 'Bearer')
     {
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
+        $this->requestOptions = $this->mergeWithRequestOptions([
             'headers' => [
-                'Authorization' => \trim($method . ' ' . $token)
+                ClientHelpers::HTTP_CLIENT_AUTHORIZATION_HEADER => \trim($method . ' ' . $token)
             ]
-        ));
+        ]);
         return $this;
     }
 

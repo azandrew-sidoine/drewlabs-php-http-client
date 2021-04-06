@@ -11,6 +11,12 @@ interface HttpClientInterface
      */
     public function asFormRequest();
 
+
+    /**
+     * This method set request content-type header to  application/json
+     */
+    public function asJson();
+
     /**
      * Add HTTP basic auth headers to the request options
      *
