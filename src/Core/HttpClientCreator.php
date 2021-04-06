@@ -12,7 +12,7 @@ class HttpClientCreator
      * @param string $base_uri
      * @return HttpClientInterface
      */
-    public function createHttpClient($base_uri = null)
+    public static function createHttpClient($base_uri = null)
     {
         return (new HttpClient(null, $base_uri));
     }
