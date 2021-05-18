@@ -136,7 +136,7 @@ class HttpClient implements HttpClientInterface
             $options[$this->requestBodyAttribute] = array_merge(
                 // Transform request mapping attributes
                 $options[$this->requestBodyAttribute],
-                $this->attachedFiles
+                ...($this->attachedFiles)
             );
         }
         $retries = $this->retries ?? 1;
