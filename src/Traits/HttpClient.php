@@ -3,6 +3,7 @@
 namespace Drewlabs\HttpClient\Traits;
 
 use Drewlabs\HttpClient\Core\ClientHelpers;
+use Drewlabs\HttpClient\Core\RequestBodyType;
 
 trait HttpClient
 {
@@ -220,6 +221,14 @@ trait HttpClient
      */
     public function post($uri = '', array $data = [], array $options = [])
     {
+        if (RequestBodyType::MULTIPART === $this->requestBodyAttribute) {
+            $data = [
+                /** This is the form filed that we will use to acess in API */
+                'name' => 'form-data',
+                /** We need to use json_encode to send the encoded data */
+                'contents' => json_encode($data)
+            ];
+        }
         return $this->request('POST', $uri, array_merge(
             $options,
             array($this->requestBodyAttribute => $data)
@@ -231,6 +240,14 @@ trait HttpClient
      */
     public function patch($uri = '', array $data = [], array $options = [])
     {
+        if (RequestBodyType::MULTIPART === $this->requestBodyAttribute) {
+            $data = [
+                /** This is the form filed that we will use to acess in API */
+                'name' => 'form-data',
+                /** We need to use json_encode to send the encoded data */
+                'contents' => json_encode($data)
+            ];
+        }
         return $this->request('PATCH', $uri, array_merge(
             $options,
             array($this->requestBodyAttribute => $data)
@@ -242,6 +259,14 @@ trait HttpClient
      */
     public function put($uri = '', array $data = [], array $options = [])
     {
+        if (RequestBodyType::MULTIPART === $this->requestBodyAttribute) {
+            $data = [
+                /** This is the form filed that we will use to acess in API */
+                'name' => 'form-data',
+                /** We need to use json_encode to send the encoded data */
+                'contents' => json_encode($data)
+            ];
+        }
         return $this->request('PUT', $uri, array_merge(
             $options,
             array($this->requestBodyAttribute => $data)
