@@ -74,6 +74,7 @@ class HttpClient implements HttpClientInterface
     {
         $this->client = $client ?? new \GuzzleHttp\Client([
             'base_uri' => $baseURI,
+            'verify' => false
         ]);
         $this->resetMiddlewareStack();
         $this->mapAttributeToInitialValues();
@@ -133,11 +134,10 @@ class HttpClient implements HttpClientInterface
     public function request($method, $uri = '', $options = [])
     {
         if (isset($options[$this->requestBodyAttribute])) {
-            $options[$this->requestBodyAttribute] = array_merge(
-                // Transform request mapping attributes
-                $options[$this->requestBodyAttribute],
-                ...($this->attachedFiles)
-            );
+            $options[$this->requestBodyAttribute] = !empty($this->attachedFiles) ? array_reduce($this->attachedFiles, function($carr, $curr) {
+                array_push($carr, $curr);
+                return $carr;
+            }, [$options[$this->requestBodyAttribute]]) : $options[$this->requestBodyAttribute];
         }
         $retries = $this->retries ?? 1;
         return \Drewlabs\HttpClient\Core\ClientHelpers::retry($retries, function () use ($method, $uri, $options, &$retries) {
