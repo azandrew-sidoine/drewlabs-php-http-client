@@ -4,7 +4,7 @@ namespace Drewlabs\HttpClient\Core;
 
 use Drewlabs\HttpClient\Contracts\ProxiedHttpClientInterface;
 
-class ProxiedHttpClient extends DrewlabsHttpClient implements ProxiedHttpClientInterface
+class ProxiedHttpClient extends HttpClient implements ProxiedHttpClientInterface
 {
     /**
      * URL to the remote host HTTP server
@@ -44,8 +44,6 @@ class ProxiedHttpClient extends DrewlabsHttpClient implements ProxiedHttpClientI
         $this->proxy_resource_path = $proxy_resource_path;
         $this->remote_host = $remote_host;
         $this->client = $this->_create_client($proxy_server_url);
-        // $this->resetMiddlewareStack();
-        // $this->mapAttributeToInitialValues();
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace Drewlabs\HttpClient\Core;
 
-class DrewlabsHttpClientInterceptors
+class HttpClientInterceptors
 {
 
     /**
