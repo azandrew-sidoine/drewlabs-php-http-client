@@ -1,27 +1,37 @@
 # Drewlabs Http Client library
 
+The Http client library provides methods for making Http request to Http servers using the various HTTP verbs (GET, POST, DELETE, PUT, PATCH).
+
 ## Usage
 
-``` php
-// Create the HTTP client
-$httpClient = new \Drewlabs\HttpClient\Core\HttpClient(
-    $client = new \GuzzleHttp\Client([
-        'base_uri' => 'http://127.0.0.1:8887/api/',
-    ])
-);
+- Http Client
 
-try {
-    $response = $httpClient->asJson()
+``` php
+use Drewlabs\HttpClient\Core\HttpClientCreator;
+
+require __DIR__ . '/vendor/autoload.php';
+
+// Create the HTTP client
+$client = HttpClientCreator::createHttpClient('https://jsonplaceholder.typicode.com/');
+
+$response = $client->asJson()
     ->withoutRedirecting()
-    ->withTimeout(3)
-    ->post(
-        'path', [
-        'param1' => 'value1',
-        'param2' => 'value2',
-        'param3' => 'value3',
-    ]);
-    // Decode the JSON content gotten from the request response
-    $value = json_decode($response->getBody()->getContents());
-} catch (\Exception $th) {
-    var_dump($th->getMessage());
-}
+    // ->withTimeout(3)
+    ->get('todos/1');
+```
+
+- Http Proxy client
+
+```php
+
+use Drewlabs\HttpClient\Core\HttpClientCreator;
+
+require __DIR__ . '/vendor/autoload.php';
+$client = HttpClientCreator::createHttProxyClient('<URL_TO_PROXY_WEBSERVER>', 'proxy', 'https://jsonplaceholder.typicode.com/');
+
+$response = $client->asJson()
+    ->withoutRedirecting()
+    ->get('todos/1');
+
+$value = json_decode($response->getBody()->getContents());
+```
