@@ -3,18 +3,29 @@
 namespace Drewlabs\HttpClient\Core;
 
 use Drewlabs\HttpClient\Contracts\HttpClientInterface;
+use GuzzleHttp\ClientInterface;
 
 class HttpClientCreator
 {
     /**
      * Create a Simple HTTP Request Client provider
      *
-     * @param string $base_uri
+     * @param string $uri
      * @return HttpClientInterface
      */
-    public static function createHttpClient($base_uri = null)
+    public static function createHttpClient($uri = null)
     {
-        return (new HttpClient(null, $base_uri));
+        return (new HttpClient(null, $uri));
+    }
+
+    /**
+     * 
+     * @param ClientInterface $client 
+     * @return HttpClient 
+     */
+    public static function createHttpClientFromGuzzleClient(ClientInterface $client)
+    {
+        return (new HttpClient($client));
     }
 
     /**
