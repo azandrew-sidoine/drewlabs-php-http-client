@@ -3,6 +3,7 @@
 namespace Drewlabs\HttpClient\Traits;
 
 use Drewlabs\HttpClient\Core\ClientHelpers;
+use Drewlabs\HttpClient\Core\RequestBodyType;
 
 trait HttpClient
 {
@@ -222,6 +223,16 @@ trait HttpClient
      */
     public function post($uri = '', array $data = [], array $options = [])
     {
+        if ((RequestBodyType::MULTIPART === $this->requestBodyAttribute) && array_is_assoc($data)) {
+            $tmp = [];
+            foreach ($data as $key => $value) {
+                $tmp[] = [
+                    'name' => $key,
+                    'contents' => $value
+                ];
+            }
+            $data = $tmp;
+        }
         return $this->request('POST', $uri, array_merge(
             $options,
             [$this->requestBodyAttribute => $data]
@@ -233,9 +244,19 @@ trait HttpClient
      */
     public function patch($uri = '', array $data = [], array $options = [])
     {
+        if ((RequestBodyType::MULTIPART === $this->requestBodyAttribute) && array_is_assoc($data)) {
+            $tmp = [];
+            foreach ($data as $key => $value) {
+                $tmp[] = [
+                    'name' => $key,
+                    'contents' => $value
+                ];
+            }
+            $data = $tmp;
+        }
         return $this->request('PATCH', $uri, array_merge(
             $options,
-            array($this->requestBodyAttribute => $data)
+            [$this->requestBodyAttribute => $data]
         ));
     }
 
@@ -244,9 +265,19 @@ trait HttpClient
      */
     public function put($uri = '', array $data = [], array $options = [])
     {
+        if ((RequestBodyType::MULTIPART === $this->requestBodyAttribute) && array_is_assoc($data)) {
+            $tmp = [];
+            foreach ($data as $key => $value) {
+                $tmp[] = [
+                    'name' => $key,
+                    'contents' => $value
+                ];
+            }
+            $data = $tmp;
+        }
         return $this->request('PUT', $uri, array_merge(
             $options,
-            array($this->requestBodyAttribute => $data)
+            [$this->requestBodyAttribute => $data]
         ));
     }
 
