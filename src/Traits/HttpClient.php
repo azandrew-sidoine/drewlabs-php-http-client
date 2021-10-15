@@ -137,7 +137,7 @@ trait HttpClient
     /**
      * @inheritDoc
      */
-    public function withAttachment($name, $contents, $filename, $headers = null)
+    public function withAttachment($name, $contents, $filename = null, $headers = null)
     {
         $this->asMultipart();
         $this->attachedFiles[] = [
