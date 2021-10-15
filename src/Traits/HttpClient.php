@@ -137,15 +137,17 @@ trait HttpClient
     /**
      * @inheritDoc
      */
-    public function withAttachment($name, $contents, $filename, $headers = null)
+    public function withAttachment($name, $contents, $filename = null, $headers = null)
     {
         $this->asMultipart();
-        $this->attachedFiles[] = [
-            'name' => $name,
-            'contents' => $contents,
-            'filename' => $filename,
-            'headers' => $headers
-        ];
+        $this->attachedFiles[] = array_merge(
+            [
+                'name' => $name,
+                'contents' => $contents
+            ],
+            $filename ? ['filename' => $filename] : [],
+            $headers ? ['headers' => $headers ?? []] : []
+        );
         return $this;
     }
 
@@ -222,7 +224,7 @@ trait HttpClient
     {
         return $this->request('POST', $uri, array_merge(
             $options,
-            array($this->requestBodyAttribute => $data)
+            [$this->requestBodyAttribute => $data]
         ));
     }
 

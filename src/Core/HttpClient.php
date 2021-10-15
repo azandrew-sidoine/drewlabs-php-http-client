@@ -114,11 +114,13 @@ class HttpClient implements HttpClientInterface
 
     private function withContentType()
     {
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
-            'headers' => [
-                ClientHelpers::HTTP_CLIENT_CONTENT_TYPE_HEADER => $this->requestContentType
-            ]
-        ));
+        if ($this->requestContentType) {
+            $this->requestOptions = $this->mergeWithRequestOptions([
+                'headers' => [
+                    ClientHelpers::HTTP_CLIENT_CONTENT_TYPE_HEADER => $this->requestContentType
+                ]
+            ]);
+        }
         return $this;
     }
 
