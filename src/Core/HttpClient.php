@@ -116,11 +116,11 @@ class HttpClient implements HttpClientInterface
     private function withContentType()
     {
         if ($this->requestContentType) {
-            $this->requestOptions = $this->mergeWithRequestOptions(array(
+            $this->requestOptions = $this->mergeWithRequestOptions([
                 'headers' => [
                     ClientHelpers::HTTP_CLIENT_CONTENT_TYPE_HEADER => $this->requestContentType
                 ]
-            ));
+            ]);
         }
         return $this;
     }
@@ -136,7 +136,11 @@ class HttpClient implements HttpClientInterface
     public function request($method, $uri = '', $options = [])
     {
         if (isset($options[$this->requestBodyAttribute])) {
-            $options[$this->requestBodyAttribute] = array_merge($options[$this->requestBodyAttribute], $this->attachedFiles);
+            $options[$this->requestBodyAttribute] = array_merge(
+                // Transform request mapping attributes
+                $options[$this->requestBodyAttribute],
+                $this->attachedFiles
+            );
         }
         $retries = $this->retries ?? 1;
         return \Drewlabs\HttpClient\Core\ClientHelpers::retry($retries, function () use ($method, $uri, $options, &$retries) {

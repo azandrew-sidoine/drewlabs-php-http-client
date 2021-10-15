@@ -35,7 +35,7 @@ interface HttpClientInterface
      * @param array $headers
      * @return static
      */
-    public function withAttachment($name, $contents, $filename, $headers = null);
+    public function withAttachment($name, $contents, $filename = null, $headers = null);
 
     /**
      * Add request cookies to the request before making any request
