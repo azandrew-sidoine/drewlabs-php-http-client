@@ -3,6 +3,7 @@
 namespace Drewlabs\HttpClient\Traits;
 
 use Drewlabs\HttpClient\Core\ClientHelpers;
+use Drewlabs\HttpClient\Core\RequestBodyType;
 
 trait HttpClient
 {
