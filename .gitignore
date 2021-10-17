@@ -2,3 +2,5 @@
 /assets
 index.php
 composer.lock
+/.vscode
+/.metals
