@@ -140,12 +140,14 @@ trait HttpClient
     public function withAttachment($name, $contents, $filename = null, $headers = null)
     {
         $this->asMultipart();
-        $this->attachedFiles[] = [
-            'name' => $name,
-            'contents' => $contents,
-            'filename' => $filename,
-            'headers' => $headers
-        ];
+        $this->attachedFiles[] = array_merge(
+            [
+                'name' => $name,
+                'contents' => $contents
+            ],
+            $filename ? ['filename' => $filename] : [],
+            $headers ? ['headers' => $headers ?? []] : []
+        );
         return $this;
     }
 
@@ -222,7 +224,7 @@ trait HttpClient
     {
         return $this->request('POST', $uri, array_merge(
             $options,
-            array($this->requestBodyAttribute => $data)
+            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
         ));
     }
 
@@ -233,7 +235,7 @@ trait HttpClient
     {
         return $this->request('PATCH', $uri, array_merge(
             $options,
-            array($this->requestBodyAttribute => $data)
+            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
         ));
     }
 
@@ -244,7 +246,7 @@ trait HttpClient
     {
         return $this->request('PUT', $uri, array_merge(
             $options,
-            array($this->requestBodyAttribute => $data)
+            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
         ));
     }
 
@@ -268,5 +270,37 @@ trait HttpClient
      */
     public function head($uri = '', array $options = [])
     {
+    }
+
+    /**
+     * 
+     * @param array|\ArrayAccess $body 
+     * @return array 
+     */
+    private function parseRequestBody($body)
+    {
+        if (('multipart' === $this->requestBodyAttribute) &&
+            $this->isAssociativeArray_($body)
+        ) {
+            $tmp = [];
+            foreach ($body as $key => $value) {
+                $tmp[] = [
+                    'name' => $key,
+                    'contents' => $value
+                ];
+            }
+            $body = $tmp;
+        }
+        return $body;
+    }
+
+    /**
+     * Checks if an array is an associative array.
+     *
+     * @return bool
+     */
+    public function isAssociativeArray_(array $value)
+    {
+        return array_keys($value) !== range(0, count($value) - 1);
     }
 }
