@@ -235,7 +235,7 @@ trait HttpClient
         }
         return $this->request('POST', $uri, array_merge(
             $options,
-            [$this->requestBodyAttribute => $data]
+            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
         ));
     }
 
@@ -256,7 +256,7 @@ trait HttpClient
         }
         return $this->request('PATCH', $uri, array_merge(
             $options,
-            [$this->requestBodyAttribute => $data]
+            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
         ));
     }
 
@@ -277,7 +277,7 @@ trait HttpClient
         }
         return $this->request('PUT', $uri, array_merge(
             $options,
-            [$this->requestBodyAttribute => $data]
+            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
         ));
     }
 
@@ -301,5 +301,37 @@ trait HttpClient
      */
     public function head($uri = '', array $options = [])
     {
+    }
+
+    /**
+     * 
+     * @param array|\ArrayAccess $body 
+     * @return array 
+     */
+    private function parseRequestBody($body)
+    {
+        if (('multipart' === $this->requestBodyAttribute) &&
+            $this->isAssociativeArray_($body)
+        ) {
+            $tmp = [];
+            foreach ($body as $key => $value) {
+                $tmp[] = [
+                    'name' => $key,
+                    'contents' => $value
+                ];
+            }
+            $body = $tmp;
+        }
+        return $body;
+    }
+
+    /**
+     * Checks if an array is an associative array.
+     *
+     * @return bool
+     */
+    public function isAssociativeArray_(array $value)
+    {
+        return array_keys($value) !== range(0, count($value) - 1);
     }
 }
