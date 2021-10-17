@@ -21,9 +21,7 @@
             "Drewlabs\\HttpClient\\": "src/"
         },
         "classmap": [],
-        "files": [
-            "./src/helpers.php"
-        ]
+        "files": []
     },
     "extra": {
         "branch-alias": {

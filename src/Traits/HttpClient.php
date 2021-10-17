@@ -222,7 +222,7 @@ trait HttpClient
      */
     public function post($uri = '', array $data = [], array $options = [])
     {
-        if ((RequestBodyType::MULTIPART === $this->requestBodyAttribute) && array_is_assoc($data)) {
+        if (('multipart' === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
             $tmp = [];
             foreach ($data as $key => $value) {
                 $tmp[] = [
@@ -243,7 +243,7 @@ trait HttpClient
      */
     public function patch($uri = '', array $data = [], array $options = [])
     {
-        if ((RequestBodyType::MULTIPART === $this->requestBodyAttribute) && array_is_assoc($data)) {
+        if (('multipart' === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
             $tmp = [];
             foreach ($data as $key => $value) {
                 $tmp[] = [
@@ -264,7 +264,7 @@ trait HttpClient
      */
     public function put($uri = '', array $data = [], array $options = [])
     {
-        if ((RequestBodyType::MULTIPART === $this->requestBodyAttribute) && array_is_assoc($data)) {
+        if (('multipart' === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
             $tmp = [];
             foreach ($data as $key => $value) {
                 $tmp[] = [
