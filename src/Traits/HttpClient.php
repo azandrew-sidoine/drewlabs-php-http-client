@@ -2,14 +2,98 @@
 
 namespace Drewlabs\HttpClient\Traits;
 
+use ArrayIterator;
+use Drewlabs\HttpClient\Contracts\MultipartRequestParamInterface;
 use Drewlabs\HttpClient\Core\BodyType;
 use Drewlabs\HttpClient\Core\ClientHelpers;
 use Drewlabs\HttpClient\Core\ContentType;
 use Drewlabs\HttpClient\Core\Options;
+use Drewlabs\HttpClient\Exceptions\ConnectionException;
 use GuzzleHttp\Utils;
+use GuzzleHttp\HandlerStack;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 trait HttpClient
 {
+
+    /**
+     *
+     * @var string
+     */
+    protected $bodyType;
+
+    /**
+     *
+     * @var array
+     */
+    private $requestOptions = [];
+
+    /**
+     *
+     * @var int
+     */
+    private $retries;
+
+    /**
+     * Delay in microseconds
+     *
+     * @var int
+     */
+    private $retryDelay;
+
+    /**
+     *
+     * @var string
+     */
+    private $contentType;
+
+    /**
+     *
+     * @var array
+     */
+    private $attachedFiles = [];
+
+    /**
+     * 
+     * @var (array|null|string)[]
+     */
+    private $defaults = [
+        'requestOptions' => [],
+        'retries' => null,
+        'retryDelay' => null,
+        'bodyType' => BodyType::JSON,
+        'contentType' => ContentType::JSON,
+        'attachedFiles' => [],
+    ];
+
+    /**
+     *
+     * @var HandlerStack
+     */
+    private $middlewareStack;
+
+    /**
+     * 
+     * @param array|\Traversable $body 
+     * @return array 
+     */
+    private function parseRequestBody($body)
+    {
+        if ((BodyType::MULTIPART === $this->bodyType) && ClientHelpers::isAssociative($body)) {
+            return iterator_to_array((function () use ($body) {
+                foreach ($body as $key => $value) {
+                    yield [
+                        'name' => $key,
+                        'contents' => $value
+                    ];
+                }
+            })());
+        } else {
+            return iterator_to_array(is_array($body) ? new ArrayIterator($body) : $body);
+        }
+    }
+
     /**
      *
      * @param string $value
@@ -20,16 +104,16 @@ trait HttpClient
         if (isset($value) && !is_string($value)) {
             throw new \RuntimeException('Request body attribute must be provided as string');
         }
-        $this->requestBodyAttribute = $value;
+        $this->bodyType = $value;
         return $this;
     }
 
     private function withContentType()
     {
-        if ($this->requestContentType) {
-            $this->requestOptions = $this->mergeWithRequestOptions([
+        if ($this->contentType) {
+            $this->requestOptions = $this->mergeOptions([
                 Options::HEADERS => [
-                    ClientHelpers::HTTP_CLIENT_CONTENT_TYPE_HEADER => $this->requestContentType
+                    ClientHelpers::HTTP_CLIENT_CONTENT_TYPE_HEADER => $this->contentType
                 ]
             ]);
         }
@@ -44,9 +128,9 @@ trait HttpClient
         return $this;
     }
 
-    protected function mapAttributeToInitialValues()
+    private function mapAttributesToDefaults()
     {
-        foreach ($this->attributesWithInitialValues as $key => $value) {
+        foreach ($this->defaults as $key => $value) {
             if (property_exists($this, $key)) {
                 $this->{$key} = $value;
             }
@@ -54,9 +138,9 @@ trait HttpClient
         return $this;
     }
 
-    protected function mergeWithRequestOptions(array $options)
+    private function mergeOptions(array $options)
     {
-        $options = is_array($options) ? $options : [];
+        $options = is_array($options) ? $options : (null === $options ? [] : (array)$options);
         $requestOptions = array_merge($this->requestOptions ?: [], []);
         // Remove entries that are not of type array and are present in the option entry
         foreach ($options as $key => $value) {
@@ -80,17 +164,51 @@ trait HttpClient
     }
 
     /**
+     * {@inheritDoc}
+     */
+    private function handleRequest(string $method, string $uri = '', ?array $options = [])
+    {
+        if (isset($options[$this->bodyType])) {
+            $options[$this->bodyType] = array_merge(
+                // Transform request mapping attributes
+                $options[$this->bodyType],
+                $this->attachedFiles
+            );
+        }
+        $retries = $this->retries ?? 1;
+        return ClientHelpers::retry($retries, function () use ($method, $uri, $options, &$retries) {
+            try {
+                $this->withContentType();
+                $options_ = $this->mergeOptions($options);
+                $response = $this->client->request($method, $uri, $options_);
+                // Initialize the client property on each request call
+                $this->mapAttributesToDefaults();
+                return $response;
+            } catch (\GuzzleHttp\Exception\ConnectException $e) {
+                if ($retries >= 1) {
+                    throw new ConnectionException('Connection error : ' . $e->getMessage() . "\n");
+                }
+            }
+        }, $this->retryDelay ?? 100);
+    }
+
+    public function sendRequest(RequestInterface $request): ResponseInterface
+    {
+        return $this->client->send($request);
+    }
+
+    /**
      * Undocumented function
      *
      * @param string $type
      * @return static
      */
-    public function setRequestContentType($type = null)
+    public function setRequestContentType(?string $type = null)
     {
         if ((null !== $type) && !is_string($type)) {
             throw new \RuntimeException('Request content-option must be provided as nullable string');
         }
-        $this->requestContentType = $type;
+        $this->contentType = $type;
         return $this;
     }
 
@@ -101,7 +219,7 @@ trait HttpClient
      */
     public function withoutRedirecting()
     {
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
+        $this->requestOptions = $this->mergeOptions(array(
             Options::ALLOW_REDIRECT => false
         ));
         return $this;
@@ -114,7 +232,7 @@ trait HttpClient
      */
     public function withoutVerifying()
     {
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
+        $this->requestOptions = $this->mergeOptions(array(
             Options::VERIFY => false
         ));
         return $this;
@@ -136,9 +254,9 @@ trait HttpClient
     /**
      * @inheritDoc
      */
-    public function withBasicAuth($username, $secret)
+    public function withBasicAuth(string $username, string $secret)
     {
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
+        $this->requestOptions = $this->mergeOptions(array(
             Options::AUTHENTICATION => [$username, $secret]
         ));
         return $this;
@@ -147,17 +265,17 @@ trait HttpClient
     /**
      * @inheritDoc
      */
-    public function withDigestAuth($username, $secret)
+    public function withDigestAuth(string $username, string $secret)
     {
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
+        $this->requestOptions = $this->mergeOptions(array(
             Options::AUTHENTICATION => [$username, $secret, 'digest']
         ));
         return $this;
     }
 
-    public function accept($contentType)
+    public function accept(string $contentType)
     {
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
+        $this->requestOptions = $this->mergeOptions(array(
             Options::ACCEPT => $contentType
         ));
         return $this;
@@ -186,29 +304,44 @@ trait HttpClient
     /**
      * @inheritDoc
      */
-    public function withAttachment($name, $contents, $filename = null, $headers = null)
+    public function withAttachment($name, $contents = null, string $filename = null, ?array $headers = null)
     {
         $this->asMultipart();
-        $this->attachedFiles[] = array_merge(
-            [
-                'name' => $name,
-                'contents' => $contents
-            ],
-            $filename ? ['filename' => $filename] : [],
-            $headers ? ['headers' => $headers ?? []] : []
-        );
+        if ((func_num_args() === 1) &&
+            ($name instanceof MultipartRequestParamInterface) &&
+            ($name_ = $name->name()) &&
+            ($contents_ = $name->content())
+        ) {
+            $this->attachedFiles[] = array_merge(
+                [
+                    'name' => $name_,
+                    'contents' => $contents_
+                ],
+                ($value = $name->filename()) ? ['filename' => $value] : [],
+                ($headers_ = $name->headers()) ? ['headers' => $headers_] : [],
+            );
+        } else if ((null !== $contents) && (null !== $name)) {
+            $this->attachedFiles[] = array_merge(
+                [
+                    'name' => $name,
+                    'contents' => $contents
+                ],
+                $filename ? ['filename' => $filename] : [],
+                $headers ? ['headers' => $headers ?? []] : []
+            );
+        }
         return $this;
     }
 
     /**
      * @inheritDoc
      */
-    public function withCookies(array $cookies, $domain = '')
+    public function withCookies(array $cookies, string $domain = '')
     {
         if (!is_string($domain)) {
             throw new \RuntimeException('Provides a fully qualified domain');
         }
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
+        $this->requestOptions = $this->mergeOptions(array(
             Options::COOKIE => \GuzzleHttp\Cookie\CookieJar::fromArray($cookies, $domain)
         ));
         return $this;
@@ -219,7 +352,7 @@ trait HttpClient
      */
     public function withTimeout(int $timeout)
     {
-        $this->requestOptions = $this->mergeWithRequestOptions(array(
+        $this->requestOptions = $this->mergeOptions(array(
             Options::TIMEOUT => $timeout
         ));
         return $this;
@@ -238,9 +371,9 @@ trait HttpClient
     /**
      * @inheritDoc
      */
-    public function withBearerToken($token, $method = 'Bearer')
+    public function withBearerToken(string $token, string $method = 'Bearer')
     {
-        $this->requestOptions = $this->mergeWithRequestOptions([
+        $this->requestOptions = $this->mergeOptions([
             Options::HEADERS => [
                 ClientHelpers::HTTP_CLIENT_AUTHORIZATION_HEADER => \trim($method . ' ' . $token)
             ]
@@ -253,14 +386,14 @@ trait HttpClient
      */
     public function withOptions(array $options)
     {
-        $this->requestOptions = $this->mergeWithRequestOptions($options);
+        $this->requestOptions = $this->mergeOptions($options);
         return $this;
     }
 
     /**
      * @inheritDoc
      */
-    public function addHeader($name, $value)
+    public function addHeader(string $name, $value)
     {
         $self = $this->withOptions([
             Options::HEADERS => [$name => $value]
@@ -271,7 +404,7 @@ trait HttpClient
     /**
      * @inheritDoc
      */
-    public function getHeader($name)
+    public function getHeader(string $name)
     {
         $headers = $this->requestOptions[Options::HEADERS] ?? [];
         return $headers[$name] ?? null;
@@ -280,124 +413,65 @@ trait HttpClient
     /**
      * @inheritDoc
      */
-    public function get($uri = '', array $options = [])
+    public function get(string $uri = '', ?array $options = [])
     {
-        $this->requestOptions = $this->mergeWithRequestOptions($options);
-        return $this->request('GET', $uri, []);
+        return $this->handleRequest('GET', $uri, $options ?? []);
     }
 
     /**
      * @inheritDoc
      */
-    public function post($uri = '', array $data = [], array $options = [])
+    public function post(string $uri = '', ?array $data = [], ?array $options = [])
     {
-        if ((BodyType::MULTIPART === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
-            $tmp = [];
-            foreach ($data as $key => $value) {
-                $tmp[] = [
-                    'name' => $key,
-                    'contents' => $value
-                ];
-            }
-            $data = $tmp;
-        }
-        return $this->request('POST', $uri, array_merge(
-            $options,
-            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
+        return $this->handleRequest('POST', $uri, array_merge(
+            $options ?? [],
+            [$this->bodyType => $this->parseRequestBody($data ?? [])]
         ));
     }
 
     /**
      * @inheritDoc
      */
-    public function patch($uri = '', array $data = [], array $options = [])
+    public function patch(string $uri = '', ?array $data = [], ?array $options = [])
     {
-        if ((BodyType::MULTIPART === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
-            $tmp = [];
-            foreach ($data as $key => $value) {
-                $tmp[] = [
-                    'name' => $key,
-                    'contents' => $value
-                ];
-            }
-            $data = $tmp;
-        }
-        return $this->request('PATCH', $uri, array_merge(
-            $options,
-            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
+        return $this->handleRequest('PATCH', $uri, array_merge(
+            $options ?? [],
+            [$this->bodyType => $this->parseRequestBody($data ?? [])]
         ));
     }
 
     /**
      * @inheritDoc
      */
-    public function put($uri = '', array $data = [], array $options = [])
+    public function put(string $uri = '', ?array $data = [], ?array $options = [])
     {
-        if ((BodyType::MULTIPART === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
-            $tmp = [];
-            foreach ($data as $key => $value) {
-                $tmp[] = [
-                    'name' => $key,
-                    'contents' => $value
-                ];
-            }
-            $data = $tmp;
-        }
-        return $this->request('PUT', $uri, array_merge(
-            $options,
-            [$this->requestBodyAttribute => $this->parseRequestBody($data)]
+        return $this->handleRequest('PUT', $uri, array_merge(
+            $options ?? [],
+            [$this->bodyType => $this->parseRequestBody($data ?? [])]
         ));
     }
 
     /**
      * @inheritDoc
      */
-    public function delete($uri = '', array $options = [])
+    public function delete(string $uri = '', ?array $options = [])
     {
-        return $this->request('DELETE', $uri, $options);
+        return $this->handleRequest('DELETE', $uri, $options ?? []);
     }
 
     /**
      * @inheritDoc
      */
-    public function option($uri = '', array $options = [])
+    public function option(string $uri = '', ?array $options = [])
     {
+        return $this->handleRequest('OPTION', $uri, $options ?? []);
     }
 
     /**
      * @inheritDoc
      */
-    public function head($uri = '', array $options = [])
+    public function head(string $uri = '', ?array $options = [])
     {
-    }
-
-    /**
-     * 
-     * @param array|\ArrayAccess $body 
-     * @return array 
-     */
-    private function parseRequestBody($body)
-    {
-        if ((BodyType::MULTIPART === $this->requestBodyAttribute) && $this->isAssociativeArray_($body)) {
-            $tmp = [];
-            foreach ($body as $key => $value) {
-                $tmp[] = [
-                    'name' => $key,
-                    'contents' => $value
-                ];
-            }
-            $body = $tmp;
-        }
-        return $body;
-    }
-
-    /**
-     * Checks if an array is an associative array.
-     *
-     * @return bool
-     */
-    public function isAssociativeArray_(array $value)
-    {
-        return array_keys($value) !== range(0, count($value) - 1);
+        return $this->handleRequest('HEAD', $uri, $options ?? []);
     }
 }

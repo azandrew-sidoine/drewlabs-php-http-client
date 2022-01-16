@@ -3,13 +3,10 @@
 namespace Drewlabs\HttpClient\Core;
 
 use Drewlabs\HttpClient\Contracts\HttpClientInterface;
-use Drewlabs\HttpClient\Exceptions\ConnectionException;
 use Drewlabs\HttpClient\Traits\HttpClient as HttpClientTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\HandlerStack;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
 
 /** @package Drewlabs\HttpClient\Core */
 class HttpClient implements HttpClientInterface
@@ -25,56 +22,12 @@ class HttpClient implements HttpClientInterface
     protected $client;
 
     /**
-     *
-     * @var string
+     * 
+     * @param ClientInterface|null $client 
+     * @param string $baseURI 
+     * @return self 
+     * @throws RuntimeException 
      */
-    protected $requestBodyAttribute;
-
-    /**
-     *
-     * @var array
-     */
-    private $requestOptions = [];
-
-    /**
-     *
-     * @var int
-     */
-    private $retries;
-
-    /**
-     *
-     * @var int
-     */
-    private $retryDelay;
-
-    /**
-     *
-     * @var string
-     */
-    private $requestContentType;
-
-    /**
-     *
-     * @var array
-     */
-    private $attachedFiles = [];
-
-    private $attributesWithInitialValues = [
-        'requestOptions' => [],
-        'retries' => null,
-        'retryDelay' => null,
-        'requestBodyAttribute' => BodyType::JSON,
-        'requestContentType' => ContentType::JSON,
-        'attachedFiles' => [],
-    ];
-
-    /**
-     *
-     * @var HandlerStack
-     */
-    private $middlewareStack;
-
     public function __construct(ClientInterface $client = null, $baseURI = null)
     {
         $this->client = $client ?? new Client([
@@ -82,40 +35,14 @@ class HttpClient implements HttpClientInterface
             'verify' => false
         ]);
         $this->resetMiddlewareStack();
-        $this->mapAttributeToInitialValues();
-    }
-
-    public function sendRequest(RequestInterface $request): ResponseInterface
-    {
-        return $this->client->send($request);
+        $this->mapAttributesToDefaults();
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
-    public function request(string $method, $uri = '', $options = [])
+    public function request(string $method, string $uri = '', ?array $options = [])
     {
-        if (isset($options[$this->requestBodyAttribute])) {
-            $options[$this->requestBodyAttribute] = array_merge(
-                // Transform request mapping attributes
-                $options[$this->requestBodyAttribute],
-                $this->attachedFiles
-            );
-        }
-        $retries = $this->retries ?? 1;
-        return ClientHelpers::retry($retries, function () use ($method, $uri, $options, &$retries) {
-            try {
-                $this->withContentType();
-                $opts = $this->mergeWithRequestOptions($options);
-                // Initialize the client property on each request call
-                $this->mapAttributeToInitialValues();
-                $response = $this->client->request($method, $uri, $opts);
-                return $response;
-            } catch (\GuzzleHttp\Exception\ConnectException $e) {
-                if ($retries >= 1) {
-                    throw new ConnectionException('Connection error : ' . $e->getMessage() . "\n");
-                }
-            }
-        }, $this->retryDelay ?? 100);
+        return $this->handleRequest($method, $uri, $options);
     }
 }

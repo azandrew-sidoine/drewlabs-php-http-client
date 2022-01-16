@@ -24,14 +24,14 @@ interface HttpClientInterface extends ClientInterface
      * @param mixed $value 
      * @return self 
      */
-    public function addHeader($name, $value);
+    public function addHeader(string $name, $value);
 
     /**
      * 
      * @param string $name 
      * @return mixed 
      */
-    public function getHeader($name);
+    public function getHeader(string $name);
 
     /**
      * This method set request content-type header to  multipart
@@ -51,13 +51,13 @@ interface HttpClientInterface extends ClientInterface
      * This method accepts the name of the file and its contents. Optionally.
      * It set a multi-part http request header option.
      *
-     * @param string $name
+     * @param string|MultipartRequestParamInterface $name
      * @param string|ressource $contents
      * @param string $filename
      * @param array $headers
      * @return static
      */
-    public function withAttachment(string $name, $contents, ?string $filename = null, ?array $headers = null);
+    public function withAttachment($name, $contents = null, string $filename = null, ?array $headers = null);
 
     /**
      * Add request cookies to the request before making any request
@@ -66,7 +66,7 @@ interface HttpClientInterface extends ClientInterface
      * @param string $domain
      * @return static
      */
-    public function withCookies(array $cookies, $domain = '');
+    public function withCookies(array $cookies, string $domain = '');
 
     /**
      * Set request timeout that will be apply to the request client
@@ -137,7 +137,7 @@ interface HttpClientInterface extends ClientInterface
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function post(string $uri = '', array $data = [], ?array $options = []);
+    public function post(string $uri = '', ?array $data = [], ?array $options = []);
 
     /**
      * Make a request to the HTTP server with the PATCH method
@@ -150,7 +150,7 @@ interface HttpClientInterface extends ClientInterface
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function patch($uri = '', array $data = [], array $options = []);
+    public function patch(string $uri = '', ?array $data = [], ?array $options = []);
 
     /**
      * Make a request to the HTTP server with the PUT method
@@ -200,4 +200,12 @@ interface HttpClientInterface extends ClientInterface
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function head(string $uri = '', ?array $options = []);
+
+    /**
+     * Set the type of content the request accept
+     * 
+     * @param string $type 
+     * @return mixed 
+     */
+    public function accept(string $type);
 }

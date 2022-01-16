@@ -38,4 +38,12 @@ class ClientHelpers
             goto beginning;
         }
     }
+
+    public static function isAssociative($value = [])
+    {
+        if (null === $value) {
+            return false;
+        }
+        return array_keys($value) !== range(0, count($value) - 1);
+    }
 }
