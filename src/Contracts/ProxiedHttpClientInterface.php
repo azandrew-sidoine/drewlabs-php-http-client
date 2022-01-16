@@ -7,10 +7,10 @@ interface ProxiedHttpClientInterface extends HttpClientInterface
     /**
      * Create an http client that send requests through proxy server
      *
-     * @param string $proxy_server_url
+     * @param string $proxyHost
      * @param string|null $resource_path
-     * @param string|null $remote_host
+     * @param string|null $remoteHost
      * @return static
      */
-    public function proxy($proxy_server_url, $resource_path = null, $remote_host = null);
+    public function proxy(string $proxyHost, ?string $resource_path = null, ?string $remoteHost = null);
 }

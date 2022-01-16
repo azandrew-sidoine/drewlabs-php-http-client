@@ -13,9 +13,9 @@ class HttpClientCreator
      * @param string $uri
      * @return HttpClientInterface
      */
-    public static function createHttpClient($uri = null)
+    public static function createHttpClient(?string $base_uri = null)
     {
-        return (new HttpClient(null, $uri));
+        return (new HttpClient(null, $base_uri));
     }
 
     /**
@@ -36,8 +36,11 @@ class HttpClientCreator
      * @param string|null $remote_host
      * @return HttpClientInterface
      */
-    public static function createHttProxyClient($proxy_server_url, $proxy_resource_path = null, $remote_host = null)
-    {
+    public static function createHttProxyClient(
+        string $proxy_server_url,
+        ?string $proxy_resource_path = null,
+        ?string $remote_host = null
+    ) {
         return (new ProxiedHttpClient)->proxy($proxy_server_url, $proxy_resource_path, $remote_host);
     }
 }

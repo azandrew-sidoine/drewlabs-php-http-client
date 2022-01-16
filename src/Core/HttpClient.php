@@ -91,14 +91,9 @@ class HttpClient implements HttpClientInterface
     }
 
     /**
-     * Make an HTTP request with the provided parameters
-     *
-     * @param string $method
-     * @param string $uri
-     * @param string $options
-     * @return ResponseInterface
+     * {@inheritDoc}
      */
-    public function request($method, $uri = '', $options = [])
+    public function request(string $method, $uri = '', $options = [])
     {
         if (isset($options[$this->requestBodyAttribute])) {
             $options[$this->requestBodyAttribute] = array_merge(
