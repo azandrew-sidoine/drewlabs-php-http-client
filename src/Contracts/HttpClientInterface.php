@@ -23,7 +23,7 @@ interface HttpClientInterface
      * @param string $secret
      * @return static
      */
-    public function withBasicAuth($username, $secret);
+    public function withBasicAuth(string $username, string $secret);
 
     /**
      * This method accepts the name of the file and its contents. Optionally.
@@ -35,7 +35,7 @@ interface HttpClientInterface
      * @param array $headers
      * @return static
      */
-    public function withAttachment($name, $contents, $filename = null, $headers = null);
+    public function withAttachment(string $name, $contents, ?string $filename = null, ?array $headers = null);
 
     /**
      * Add request cookies to the request before making any request
@@ -71,7 +71,7 @@ interface HttpClientInterface
      * @param string $method
      * @return static
      */
-    public function withBearerToken($token, $method = 'Bearer');
+    public function withBearerToken(string $token, string $method = 'Bearer');
 
     /**
      * This method helps in specifying additionnal Guzzle http request
@@ -90,7 +90,7 @@ interface HttpClientInterface
      * @param string $options
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function request($method, $uri = '', $options = []);
+    public function request(string $method, string $uri = '', ?array $options = []);
 
     /**
      * Make a request to the HTTP server with the GET method
@@ -102,7 +102,7 @@ interface HttpClientInterface
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function get($uri = '', array $options = []);
+    public function get(string $uri = '', ?array $options = []);
 
     /**
      * Make a request to the HTTP server with the POST method
@@ -115,7 +115,7 @@ interface HttpClientInterface
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function post($uri = '', array $data = [], array $options = []);
+    public function post(string $uri = '', array $data = [], ?array $options = []);
 
     /**
      * Make a request to the HTTP server with the PATCH method
@@ -141,7 +141,7 @@ interface HttpClientInterface
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function put($uri = '', array $data = [], array $options = []);
+    public function put(string $uri = '', ?array $data = [], ?array $options = []);
 
     /**
      * Make a request to the HTTP server with the DELETE method
@@ -153,7 +153,7 @@ interface HttpClientInterface
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function delete($uri = '', array $options = []);
+    public function delete(string $uri = '', ?array $options = []);
 
     /**
      * Make a request to the HTTP server with the OPTION method
@@ -165,7 +165,7 @@ interface HttpClientInterface
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function option($uri = '', array $options = []);
+    public function option(string $uri = '', ?array $options = []);
 
     /**
      * Make a request to the HTTP server with the HEAD method
@@ -177,5 +177,5 @@ interface HttpClientInterface
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function head($uri = '', array $options = []);
+    public function head(string $uri = '', ?array $options = []);
 }

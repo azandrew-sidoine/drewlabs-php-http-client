@@ -3,6 +3,7 @@
 namespace Drewlabs\HttpClient\Core;
 
 use Drewlabs\HttpClient\Contracts\HttpClientInterface;
+use Drewlabs\HttpClient\Exceptions\ConnectionException;
 use Drewlabs\HttpClient\Traits\HttpClient as HttpClientTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
@@ -83,14 +84,9 @@ class HttpClient implements HttpClientInterface
     }
 
     /**
-     * Make an HTTP request with the provided parameters
-     *
-     * @param string $method
-     * @param string $uri
-     * @param string $options
-     * @return \Psr\Http\Message\ResponseInterface
+     * {@inheritDoc}
      */
-    public function request($method, $uri = '', $options = [])
+    public function request(string $method, $uri = '', $options = [])
     {
         if (isset($options[$this->requestBodyAttribute])) {
             $options[$this->requestBodyAttribute] = array_merge(
@@ -110,7 +106,7 @@ class HttpClient implements HttpClientInterface
                 return $response;
             } catch (\GuzzleHttp\Exception\ConnectException $e) {
                 if ($retries >= 1) {
-                    throw new \Drewlabs\HttpClient\Exceptions\ConnectionException('Connection error : ' . $e->getMessage() . "\n");
+                    throw new ConnectionException('Connection error : ' . $e->getMessage() . "\n");
                 }
             }
         }, $this->retryDelay ?? 100);

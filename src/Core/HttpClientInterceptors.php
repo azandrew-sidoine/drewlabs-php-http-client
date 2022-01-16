@@ -2,7 +2,10 @@
 
 namespace Drewlabs\HttpClient\Core;
 
-class DrewlabsHttpClientInterceptors
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
+class HttpClientInterceptors
 {
 
     /**
@@ -16,7 +19,7 @@ class DrewlabsHttpClientInterceptors
     {
         return function (callable $handler) use ($callback) {
             return function (
-                \Psr\Http\Message\RequestInterface $request,
+                RequestInterface $request,
                 array $options
             ) use ($handler, $callback) {
 
@@ -36,7 +39,7 @@ class DrewlabsHttpClientInterceptors
     {
         return function (callable $handler) use ($callback) {
             return function (
-                \Psr\Http\Message\ResponseInterface $request,
+                ResponseInterface $request,
                 array $options
             ) use ($handler, $callback) {
                 return $handler($request, $options)->then($callback);
