@@ -2,12 +2,57 @@
 
 namespace Drewlabs\HttpClient\Traits;
 
+use Drewlabs\HttpClient\Core\BodyType;
 use Drewlabs\HttpClient\Core\ClientHelpers;
-use Drewlabs\HttpClient\Core\RequestBodyType;
+use Drewlabs\HttpClient\Core\ContentType;
+use Drewlabs\HttpClient\Core\Options;
+use GuzzleHttp\Utils;
 
 trait HttpClient
 {
+    /**
+     *
+     * @param string $value
+     * @return static
+     */
+    private function setRequestBodyAttribute($value)
+    {
+        if (isset($value) && !is_string($value)) {
+            throw new \RuntimeException('Request body attribute must be provided as string');
+        }
+        $this->requestBodyAttribute = $value;
+        return $this;
+    }
 
+    private function withContentType()
+    {
+        if ($this->requestContentType) {
+            $this->requestOptions = $this->mergeWithRequestOptions([
+                Options::HEADERS => [
+                    ClientHelpers::HTTP_CLIENT_CONTENT_TYPE_HEADER => $this->requestContentType
+                ]
+            ]);
+        }
+        return $this;
+    }
+
+
+    protected function resetMiddlewareStack()
+    {
+        $this->middlewareStack = new \GuzzleHttp\HandlerStack();
+        $this->middlewareStack->setHandler(Utils::chooseHandler());
+        return $this;
+    }
+
+    protected function mapAttributeToInitialValues()
+    {
+        foreach ($this->attributesWithInitialValues as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->{$key} = $value;
+            }
+        }
+        return $this;
+    }
 
     protected function mergeWithRequestOptions(array $options)
     {
@@ -40,10 +85,10 @@ trait HttpClient
      * @param string $type
      * @return static
      */
-    public function setRequestContentType($type)
+    public function setRequestContentType($type = null)
     {
-        if (isset($type) && !is_string($type)) {
-            throw new \RuntimeException('Request content-option must be provided as string');
+        if ((null !== $type) || !is_string($type)) {
+            throw new \RuntimeException('Request content-option must be provided as nullable string');
         }
         $this->requestContentType = $type;
         return $this;
@@ -57,7 +102,7 @@ trait HttpClient
     public function withoutRedirecting()
     {
         $this->requestOptions = $this->mergeWithRequestOptions(array(
-            'allow_redirects' => false
+            Options::ALLOW_REDIRECT => false
         ));
         return $this;
     }
@@ -70,7 +115,7 @@ trait HttpClient
     public function withoutVerifying()
     {
         $this->requestOptions = $this->mergeWithRequestOptions(array(
-            'verify' => false
+            Options::VERIFY => false
         ));
         return $this;
     }
@@ -83,7 +128,8 @@ trait HttpClient
      */
     public function asFormRequest()
     {
-        $this->setRequestBodyAttribute('form_params')->setRequestContentType('application/x-www-form-urlencoded');
+        $this->setRequestBodyAttribute(BodyType::FORM_DATA)
+            ->setRequestContentType(ContentType::URL_ENCODED);
         return $this;
     }
 
@@ -93,7 +139,7 @@ trait HttpClient
     public function withBasicAuth($username, $secret)
     {
         $this->requestOptions = $this->mergeWithRequestOptions(array(
-            'auth' => [$username, $secret]
+            Options::AUTHENTICATION => [$username, $secret]
         ));
         return $this;
     }
@@ -104,7 +150,7 @@ trait HttpClient
     public function withDigestAuth($username, $secret)
     {
         $this->requestOptions = $this->mergeWithRequestOptions(array(
-            'auth' => [$username, $secret, 'digest']
+            Options::AUTHENTICATION => [$username, $secret, 'digest']
         ));
         return $this;
     }
@@ -112,7 +158,7 @@ trait HttpClient
     public function accept($contentType)
     {
         $this->requestOptions = $this->mergeWithRequestOptions(array(
-            'Accept' => $contentType
+            Options::ACCEPT => $contentType
         ));
         return $this;
     }
@@ -122,7 +168,8 @@ trait HttpClient
      */
     public function asMultipart()
     {
-        $this->setRequestBodyAttribute('multipart');
+        $this->setRequestBodyAttribute(BodyType::MULTIPART)
+            ->setRequestContentType();
         return $this;
     }
 
@@ -131,7 +178,8 @@ trait HttpClient
      */
     public function asJson()
     {
-        $this->setRequestBodyAttribute('json')->setRequestContentType('application/json');
+        $this->setRequestBodyAttribute(BodyType::JSON)
+            ->setRequestContentType(ContentType::JSON);
         return $this;
     }
 
@@ -161,7 +209,7 @@ trait HttpClient
             throw new \RuntimeException('Provides a fully qualified domain');
         }
         $this->requestOptions = $this->mergeWithRequestOptions(array(
-            'cookies' => \GuzzleHttp\Cookie\CookieJar::fromArray($cookies, $domain)
+            Options::COOKIE => \GuzzleHttp\Cookie\CookieJar::fromArray($cookies, $domain)
         ));
         return $this;
     }
@@ -172,7 +220,7 @@ trait HttpClient
     public function withTimeout(int $timeout)
     {
         $this->requestOptions = $this->mergeWithRequestOptions(array(
-            'timeout' => $timeout
+            Options::TIMEOUT => $timeout
         ));
         return $this;
     }
@@ -193,7 +241,7 @@ trait HttpClient
     public function withBearerToken($token, $method = 'Bearer')
     {
         $this->requestOptions = $this->mergeWithRequestOptions([
-            'headers' => [
+            Options::HEADERS => [
                 ClientHelpers::HTTP_CLIENT_AUTHORIZATION_HEADER => \trim($method . ' ' . $token)
             ]
         ]);
@@ -223,6 +271,16 @@ trait HttpClient
      */
     public function post($uri = '', array $data = [], array $options = [])
     {
+        if ((BodyType::MULTIPART === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
+            $tmp = [];
+            foreach ($data as $key => $value) {
+                $tmp[] = [
+                    'name' => $key,
+                    'contents' => $value
+                ];
+            }
+            $data = $tmp;
+        }
         return $this->request('POST', $uri, array_merge(
             $options,
             [$this->requestBodyAttribute => $this->parseRequestBody($data)]
@@ -234,6 +292,16 @@ trait HttpClient
      */
     public function patch($uri = '', array $data = [], array $options = [])
     {
+        if ((BodyType::MULTIPART === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
+            $tmp = [];
+            foreach ($data as $key => $value) {
+                $tmp[] = [
+                    'name' => $key,
+                    'contents' => $value
+                ];
+            }
+            $data = $tmp;
+        }
         return $this->request('PATCH', $uri, array_merge(
             $options,
             [$this->requestBodyAttribute => $this->parseRequestBody($data)]
@@ -245,6 +313,16 @@ trait HttpClient
      */
     public function put($uri = '', array $data = [], array $options = [])
     {
+        if ((BodyType::MULTIPART === $this->requestBodyAttribute) && $this->isAssociativeArray_($data)) {
+            $tmp = [];
+            foreach ($data as $key => $value) {
+                $tmp[] = [
+                    'name' => $key,
+                    'contents' => $value
+                ];
+            }
+            $data = $tmp;
+        }
         return $this->request('PUT', $uri, array_merge(
             $options,
             [$this->requestBodyAttribute => $this->parseRequestBody($data)]
@@ -280,9 +358,7 @@ trait HttpClient
      */
     private function parseRequestBody($body)
     {
-        if (('multipart' === $this->requestBodyAttribute) &&
-            $this->isAssociativeArray_($body)
-        ) {
+        if ((BodyType::MULTIPART === $this->requestBodyAttribute) && $this->isAssociativeArray_($body)) {
             $tmp = [];
             foreach ($body as $key => $value) {
                 $tmp[] = [

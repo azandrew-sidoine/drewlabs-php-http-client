@@ -20,12 +20,14 @@
         "psr-4": {
             "Drewlabs\\HttpClient\\": "src/"
         },
-        "classmap": [],
+        "classmap": [
+            "./tests"
+        ],
         "files": []
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "v3.0.x-dev"
+            "dev-master": "v4.0.x-dev"
         }
     }
 }
