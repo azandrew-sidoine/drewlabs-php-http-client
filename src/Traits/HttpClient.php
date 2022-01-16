@@ -85,10 +85,10 @@ trait HttpClient
      * @param string $type
      * @return static
      */
-    public function setRequestContentType($type)
+    public function setRequestContentType($type = null)
     {
-        if (isset($type) && !is_string($type)) {
-            throw new \RuntimeException('Request content-option must be provided as string');
+        if ((null !== $type) || !is_string($type)) {
+            throw new \RuntimeException('Request content-option must be provided as nullable string');
         }
         $this->requestContentType = $type;
         return $this;
@@ -168,7 +168,8 @@ trait HttpClient
      */
     public function asMultipart()
     {
-        $this->setRequestBodyAttribute(BodyType::MULTIPART);
+        $this->setRequestBodyAttribute(BodyType::MULTIPART)
+        ->setRequestContentType();
         return $this;
     }
 
