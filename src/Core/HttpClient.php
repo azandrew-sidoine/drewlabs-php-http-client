@@ -8,7 +8,10 @@ use Drewlabs\HttpClient\Traits\HttpClient as HttpClientTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\HandlerStack;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
+/** @package Drewlabs\HttpClient\Core */
 class HttpClient implements HttpClientInterface
 {
 
@@ -25,7 +28,7 @@ class HttpClient implements HttpClientInterface
      *
      * @var string
      */
-    protected $requestBodyAttribute = BodyType::JSON;
+    protected $requestBodyAttribute;
 
     /**
      *
@@ -49,7 +52,7 @@ class HttpClient implements HttpClientInterface
      *
      * @var string
      */
-    private $requestContentType = ContentType::JSON;
+    private $requestContentType;
 
     /**
      *
@@ -57,13 +60,12 @@ class HttpClient implements HttpClientInterface
      */
     private $attachedFiles = [];
 
-
     private $attributesWithInitialValues = [
         'requestOptions' => [],
         'retries' => null,
         'retryDelay' => null,
-        'requestBodyAttribute' => null,
-        'requestContentType' => null,
+        'requestBodyAttribute' => BodyType::JSON,
+        'requestContentType' => ContentType::JSON,
         'attachedFiles' => [],
     ];
 
@@ -83,13 +85,18 @@ class HttpClient implements HttpClientInterface
         $this->mapAttributeToInitialValues();
     }
 
+    public function sendRequest(RequestInterface $request): ResponseInterface
+    {
+        return $this->client->send($request);
+    }
+
     /**
      * Make an HTTP request with the provided parameters
      *
      * @param string $method
      * @param string $uri
      * @param string $options
-     * @return \Psr\Http\Message\ResponseInterface
+     * @return ResponseInterface
      */
     public function request($method, $uri = '', $options = [])
     {

@@ -2,7 +2,9 @@
 
 namespace Drewlabs\HttpClient\Contracts;
 
-interface HttpClientInterface
+use Psr\Http\Client\ClientInterface;
+
+interface HttpClientInterface extends ClientInterface
 {
     /**
      * This method set request content-type header to  application/x-www-form-urlencoded
@@ -15,6 +17,26 @@ interface HttpClientInterface
      * This method set request content-type header to  application/json
      */
     public function asJson();
+
+    /**
+     * 
+     * @param string $name 
+     * @param mixed $value 
+     * @return self 
+     */
+    public function addHeader($name, $value);
+
+    /**
+     * 
+     * @param string $name 
+     * @return mixed 
+     */
+    public function getHeader($name);
+
+    /**
+     * This method set request content-type header to  multipart
+     */
+    public function asMultipart();
 
     /**
      * Add HTTP basic auth headers to the request options

@@ -87,7 +87,7 @@ trait HttpClient
      */
     public function setRequestContentType($type = null)
     {
-        if ((null !== $type) || !is_string($type)) {
+        if ((null !== $type) && !is_string($type)) {
             throw new \RuntimeException('Request content-option must be provided as nullable string');
         }
         $this->requestContentType = $type;
@@ -255,6 +255,26 @@ trait HttpClient
     {
         $this->requestOptions = $this->mergeWithRequestOptions($options);
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addHeader($name, $value)
+    {
+        $self = $this->withOptions([
+            Options::HEADERS => [$name => $value]
+        ]);
+        return $self;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getHeader($name)
+    {
+        $headers = $this->requestOptions[Options::HEADERS] ?? [];
+        return $headers[$name] ?? null;
     }
 
     /**
