@@ -29,6 +29,10 @@ Simply add the following lines to your composer.json:
 
 ## Usage
 
+HTTP client library offer various REST HTTP method as well as PSR HTTP client interface sendRequest Methods. By default REST [post], [put], [delete], [get] methods are perform using json Content Type.
+
+To transform the request into multipart request call [asMultipart()] or [asFormRequest()] for form data requests.
+
 - Http Client
 
 -- Sending a request with HTTP GET Verb
@@ -41,7 +45,7 @@ require __DIR__ . '/vendor/autoload.php';
 // Create the HTTP client
 $client = HttpClientCreator::createHttpClient('<HOST>');
 
-$response = $client->asJson()
+$response = $client
     ->withoutRedirecting()
     // ->withTimeout(3)
     ->get(
