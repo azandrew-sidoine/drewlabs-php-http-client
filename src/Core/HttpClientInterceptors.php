@@ -9,7 +9,6 @@ class HttpClientInterceptors
 {
 
     /**
-     * Undocumented function
      *
      * @param callable $callback Function that accepts a RequestInterface and
      *                     returns a RequestInterface.

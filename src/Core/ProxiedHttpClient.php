@@ -3,9 +3,22 @@
 namespace Drewlabs\HttpClient\Core;
 
 use Drewlabs\HttpClient\Contracts\ProxiedHttpClientInterface;
+use Drewlabs\HttpClient\Traits\HttpClient;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 
-class ProxiedHttpClient extends HttpClient implements ProxiedHttpClientInterface
+/** @package Drewlabs\HttpClient\Core */
+final class ProxiedHttpClient implements ProxiedHttpClientInterface
 {
+    use HttpClient;
+
+    /**
+     * Request client instance
+     *
+     * @var ClientInterface
+     */
+    protected $client;
+
     /**
      * URL to the remote host HTTP server
      *
@@ -18,19 +31,30 @@ class ProxiedHttpClient extends HttpClient implements ProxiedHttpClientInterface
      *
      * @var string
      */
-    private $proxyApiPath;
+    private $proxyPath;
 
-    public function __construct(?string $host = null)
-    {
-        $client = $this->_create_client($host);
-        parent::__construct($client);
+    public function __construct(
+        ?string $host = null,
+        ?string $proxyPath = null,
+        ?string $remoteHost = null
+    ) {
+        $this->proxy($host, $proxyPath, $remoteHost);
+        $this->resetMiddlewareStack();
+        $this->mapAttributesToDefaults();
     }
 
-    private function _create_client($base_uri)
+    private function createClient(?string $uri = null)
     {
-        return $base_uri ? new \GuzzleHttp\Client([
-            'base_uri' => $base_uri,
-        ]) : null;
+        $this->client = new Client([
+            'base_uri' => $uri,
+            'verify' => false
+        ]);
+    }
+
+    public function to(string $host)
+    {
+        $this->remoteHost = $host;
+        return $this;
     }
 
     /**
@@ -38,29 +62,28 @@ class ProxiedHttpClient extends HttpClient implements ProxiedHttpClientInterface
      */
     public function proxy(
         $proxyHost,
-        $proxiApiPath = null,
+        $proxyPath = null,
         $remoteHost = null
     ) {
-        $this->proxyApiPath = $proxiApiPath;
-        $this->remoteHost = $remoteHost;
-        if ($client = $this->_create_client($proxyHost)) {
-            $this->client = $client;
-        }
+        $this->createClient($proxyHost);
+        $this->proxyPath = $proxyPath ?? $this->proxyPath;
+        $this->remoteHost = $remoteHost ?? $this->remoteHost;
+        return $this;
     }
 
     /**
      * @inheritDoc
      */
-    public function request($method, $uri = '', $options = [])
+    public function request(string $method, string $uri = '', ?array $options = [])
     {
-        $options[$this->requestBodyAttribute] = [
-            '__body__' => $options[$this->requestBodyAttribute] ?? [],
+        $options[$this->bodyType] = [
+            '__body__' => $options[$this->bodyType] ?? [],
             '__endpoint__' => [
                 'base_uri' => $this->remoteHost,
                 'path' => $uri
             ],
             '__method__' => $method
         ];
-        return parent::request('POST', $this->proxyApiPath ?? '', $options);
+        return $this->handleRequest('POST', $this->proxyPath ?? '', $options);
     }
 }

@@ -275,6 +275,8 @@ $response = $client
 
 - Http Proxy client
 
+Proxy is an extension of the HTTP Client that send request through a proxy server [`Drewlabs HTTP Proxy Server`].
+
 ```php
 
 use Drewlabs\HttpClient\Core\HttpClientCreator;
